@@ -6,7 +6,6 @@
 
 ## TestingCompany Token
 
-xoxb-6075392655991-6237165126002-N3w8ifDa5cAfs6QAxVnjAURW
 
 ## Steps
 

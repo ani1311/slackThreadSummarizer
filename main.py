@@ -1,12 +1,52 @@
 from transformers import pipeline
+import os
+from slack_bolt import App
+from flask import Flask, request, jsonify, Response
+import json
+from queue import Queue
+from threading import Thread
+from summarizeEvent import *
 
-# Open and read the file
-with open('input.txt', 'r') as file:
-    data = file.read()
+# Create a queue
+summaryQueue = Queue()
 
-classifier = pipeline(model="kabita-choudhary/finetuned-bart-for-conversation-summary", task="summarization")
+app = Flask(__name__)
 
-# Use the read data as input to the classifier
-res = classifier(data)
 
-print(res)
+@app.route('/slack/events', methods=['POST'])
+def slackEvents():
+    data = request.get_json()
+    if "challenge" in data:
+        return jsonify({"challenge": data["challenge"]})
+    else:
+        prettyJson = json.dumps(request.get_json(), indent=4)
+        print(prettyJson)
+
+        eventData = data['event']
+        user = eventData['user']
+        channel = eventData['channel']
+        eventTs = eventData['event_ts']
+        eventSummary = SummarizeEvent(user, channel, eventTs)
+        print(eventSummary)
+
+        summaryQueue.put(eventSummary)
+
+        return (Response(), 204)
+
+
+def processor():
+    # Create a summarizer
+    summarizer = pipeline("summarization")
+    while True:
+        event = summaryQueue.get()
+        event.SendSummaryToUser()
+        print(event)
+
+        summaryQueue.task_done()
+
+
+if __name__ == "__main__":
+    Thread(target=processor).start()
+
+    # app.start()
+    app.run(debug=True, port=3000)
