@@ -20,6 +20,9 @@ def getUserName(userId):
 def conversationToString(conversation):
     text = ""
     for msg in conversation:
+        if "ThreadSummarizer" in msg[1]:
+            print("Skipping ThreadSummarizer message", msg[1])
+            continue
         text += f"{msg[0]}: {msg[1]}\n"
     return text
 
@@ -41,6 +44,7 @@ def getThread(channel, thread_ts):
             channel=channel, ts=thread_ts)
         for msg in response.data["messages"]:
             userName = getUserName(msg['user'])
+
             conversation.append(
                 [userName, replaceUserIdWithNameInText(msg['text'])])
         return conversation

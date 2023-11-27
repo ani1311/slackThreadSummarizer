@@ -36,12 +36,9 @@ def slackEvents():
 
 def processor():
     # Create a summarizer
-    summarizer = pipeline("summarization")
     while True:
         event = summaryQueue.get()
         event.SendSummaryToUser()
-        print(event)
-
         summaryQueue.task_done()
 
 
